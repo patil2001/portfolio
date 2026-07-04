@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: portfolio-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://patil2001.github.io
+    healthCheckPath: /actuator/health

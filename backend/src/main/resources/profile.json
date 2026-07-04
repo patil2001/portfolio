@@ -1,0 +1,101 @@
+{
+  "name": "Buddhaprakash Patil",
+  "tagline": "Backend Engineer — Java, Spring Boot, Distributed Systems",
+  "summary": "3+ years building payment and data platforms at Amdocs (T-Mobile project). I design microservices that stay correct under retries, concurrency and partial failure — idempotency, event-driven messaging, and resilient integrations are my day job.",
+  "location": "Pune, India (open to Bangalore / remote)",
+  "links": {
+    "github": "https://github.com/patil2001",
+    "linkedin": "https://www.linkedin.com/in/buddhapp",
+    "email": "patilbuddhaprakash@gmail.com"
+  },
+  "highlights": [
+    { "metric": "20%", "label": "transaction reliability boost", "detail": "payment processing integration with third-party financial APIs" },
+    { "metric": "35%", "label": "token-storage optimization", "detail": "Redis NoSQL data modeling for auth sessions" },
+    { "metric": "10x", "label": "concurrent transfers, zero lost updates", "detail": "PayFlow concurrency test suite proves money conservation" },
+    { "metric": "2", "label": "production microservices owned", "detail": "reporting + auth services on AWS at Amdocs" }
+  ],
+  "caseStudies": [
+    {
+      "id": "payflow",
+      "title": "PayFlow — correctness under concurrency and retries",
+      "context": "Digital wallet backend (Java 21, Spring Boot 3, two microservices) built to production standards: the four failure modes payments systems face, each solved and tested.",
+      "decisions": [
+        { "problem": "Two concurrent transfers corrupt a balance (lost update)", "choice": "Optimistic locking via @Version + bounded retry loop", "why": "Transfers on the same wallet are low-contention; optimistic avoids holding row locks. Under flash-sale contention I'd flip to SELECT ... FOR UPDATE — and the retry loop lives in a separate bean because self-invocation bypasses the Spring transaction proxy." },
+        { "problem": "Client retries a timed-out request → double spend", "choice": "Idempotency keys enforced by a DB unique constraint", "why": "An in-memory check loses the race between two concurrent duplicates; the constraint is the only arbiter that survives it. The stored response is replayed on retry." },
+        { "problem": "\"Save to DB then publish event\" crashes in between (dual write)", "choice": "Transactional outbox + polling relay, idempotent consumer", "why": "Outbox row commits atomically with the balance change; at-least-once delivery + eventId dedupe in the consumer composes into exactly-once processing — same recipe as Kafka with idempotent consumers." },
+        { "problem": "Silent balance corruption", "choice": "Append-only double-entry ledger", "why": "Every transfer writes entries that net to zero; the invariant is asserted in tests, so corruption is detectable, auditable and attributable." }
+      ],
+      "outcome": "Concurrency test suite: 10 simultaneous transfers with exact money conservation; duplicate idempotency keys produce one debit; ledger always nets to zero.",
+      "link": "https://github.com/patil2001/payflow"
+    },
+    {
+      "id": "etl",
+      "title": "Spring Batch ETL — Snowflake to PostgreSQL at scale",
+      "context": "Amdocs (T-Mobile): recurring ingestion jobs moving analytics data from QuantumOS Snowflake into PostgreSQL, originally slow and failure-prone.",
+      "decisions": [
+        { "problem": "Peak run times blowing past their window", "choice": "SQL query tuning, table partitioning, and parallel step execution", "why": "Profiling showed reads dominated; partitioning let independent slices run concurrently without contention on the write side." },
+        { "problem": "Ingestion failures mid-run leaving partial state", "choice": "Input validation up front + retry logic on transient failures", "why": "Rejecting malformed rows before the write phase turned whole-job failures into per-record skips with a report." }
+      ],
+      "outcome": "Peak runtime cut significantly; job performance metrics tracked run-over-run to drive iterative reliability improvements.",
+      "link": null
+    },
+    {
+      "id": "auth",
+      "title": "Redis-backed auth for client integrations",
+      "context": "Amdocs: secure token services for onboarding new client integrations into the payment ecosystem.",
+      "decisions": [
+        { "problem": "Token generation per request would hammer the identity provider", "choice": "Generate once per client (ID + secret), store in Redis for reuse, inject via x-authorization headers", "why": "Redis TTLs mirror token expiry so stale credentials evaporate on their own; a 35% storage optimization came from restructuring the token data model." },
+        { "problem": "Requests acting on resources they don't own", "choice": "Redis-based session validation + data fencing", "why": "Ownership checks at the cache layer reject cross-tenant access before it reaches business logic." },
+        { "problem": "Partial failures in downstream token APIs", "choice": "POP token generator with configurable retries + circuit breaker", "why": "Fail fast when the provider is down instead of queueing doomed requests; custom exceptions distinguish retryable from terminal failures." }
+      ],
+      "outcome": "Improved authentication flow reliability across client integrations; reduced database load via the Redis session model.",
+      "link": null
+    }
+  ],
+  "projects": [
+    {
+      "name": "PayFlow",
+      "description": "Digital wallet & payments backend — optimistic locking, idempotency keys, transactional outbox, double-entry ledger. Two microservices with event-driven communication and a concurrency test suite.",
+      "stack": ["Java 21", "Spring Boot 3", "Spring Security", "JPA", "JWT", "Caffeine"],
+      "link": "https://github.com/patil2001/payflow"
+    },
+    {
+      "name": "This portfolio",
+      "description": "The site you're reading is itself a Spring Boot API + static frontend: OpenAPI-documented, containerized, CI-deployed, health-monitored. Explore the live Swagger UI.",
+      "stack": ["Spring Boot 3", "springdoc-openapi", "Docker", "GitHub Actions", "Render"],
+      "link": "/swagger-ui"
+    },
+    {
+      "name": "Naukri Job Finder",
+      "description": "Job-search automation pipeline: scraping, relevance filtering and application staging with human-in-the-loop approval.",
+      "stack": ["Automation", "Browser orchestration"],
+      "link": "https://github.com/patil2001"
+    }
+  ],
+  "skills": {
+    "expert": ["Java", "Spring Boot", "Spring Batch", "REST API design", "Microservices", "PostgreSQL", "Redis"],
+    "proficient": ["Kafka", "AWS (S3, EC2, SNS, SQS, IAM)", "Spring Security", "Docker", "Hibernate/JPA", "JUnit + Mockito", "CI/CD (Jenkins, GitHub Actions)"],
+    "familiar": ["Kubernetes", "Snowflake", "MongoDB", "GraphQL", "Angular", "Python"]
+  },
+  "experience": [
+    {
+      "company": "Amdocs",
+      "role": "Software Developer",
+      "period": "Dec 2023 — Present",
+      "location": "Pune",
+      "bullets": [
+        "Payment processing integration with third-party financial APIs — +20% transaction reliability",
+        "AWS S3 reporting microservice: query → S3 → downloadable CSV, consumed by frontend teams",
+        "High-throughput Kafka producers/consumers for real-time event streaming across the payments ecosystem",
+        "Jenkins plugin for artifact-management automation (led cross-functional initiative)",
+        "Partitioned WebClient + CompletableFuture integrations for high-throughput external API calls"
+      ]
+    }
+  ],
+  "education": {
+    "degree": "B.E., Computer Engineering",
+    "school": "Bharati Vidyapeeth's College of Engineering, Pune",
+    "period": "2019 — 2023",
+    "cgpa": "8.24"
+  }
+}

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buddhaprakash Patil — Backend Engineer (Java · Spring Boot · Distributed Systems)</title>
+<meta name="description" content="Backend engineer with 3+ years building payment and data platforms at Amdocs. Java, Spring Boot, Kafka, Redis, AWS. Case studies on idempotency, transactional outbox, and ETL at scale.">
+<meta property="og:title" content="Buddhaprakash Patil — Backend Engineer">
+<meta property="og:description" content="Payments & distributed-systems case studies: idempotency, transactional outbox, double-entry ledgers, Spring Batch ETL.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: { extend: { colors: { accent: '#34d399', ink: '#0b1120', panel: '#111a2e' } } }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  .mono { font-family: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace; }
+  details[open] summary .chev { transform: rotate(90deg); }
+  .chev { transition: transform .2s; }
+</style>
+</head>
+<body class="bg-ink text-slate-200 antialiased">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-50 bg-ink/90 backdrop-blur border-b border-slate-800">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="#" class="mono text-accent font-bold">bp@backend:~$</a>
+    <div class="flex gap-5 text-sm">
+      <a href="#case-studies" class="hover:text-accent">Case Studies</a>
+      <a href="#projects" class="hover:text-accent">Projects</a>
+      <a href="#skills" class="hover:text-accent">Skills</a>
+      <a href="#contact" class="hover:text-accent">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="max-w-5xl mx-auto px-4 pt-16 pb-12">
+  <p class="mono text-accent text-sm mb-3">// currently: Software Developer @ Amdocs (T-Mobile project)</p>
+  <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight">Buddhaprakash Patil</h1>
+  <h2 class="text-xl md:text-2xl text-slate-400 mt-2">Backend Engineer — Java · Spring Boot · Distributed Systems</h2>
+  <p class="mt-5 max-w-2xl text-slate-300">
+    3+ years building payment and data platforms. I design microservices that stay correct under
+    retries, concurrency and partial failure — idempotency, event-driven messaging and resilient
+    integrations are my day job, not buzzwords.
+  </p>
+  <div class="mt-6 flex flex-wrap gap-3">
+    <a href="assets/Buddhaprakash_Patil_Resume.pdf" class="px-4 py-2 bg-accent text-ink font-semibold rounded hover:opacity-90">Resume (PDF)</a>
+    <a href="https://github.com/patil2001" class="px-4 py-2 border border-slate-600 rounded hover:border-accent">GitHub</a>
+    <a href="https://www.linkedin.com/in/buddhapp" class="px-4 py-2 border border-slate-600 rounded hover:border-accent">LinkedIn</a>
+  </div>
+  <p id="api-status" class="mono text-xs text-slate-500 mt-6">api: checking…</p>
+</header>
+
+<!-- IMPACT -->
+<section class="max-w-5xl mx-auto px-4 pb-14">
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="highlights">
+    <div class="bg-panel rounded-lg p-5 border border-slate-800">
+      <div class="text-3xl font-bold text-accent">20%</div>
+      <div class="text-sm text-slate-400 mt-1">transaction reliability boost — payment API integrations</div>
+    </div>
+    <div class="bg-panel rounded-lg p-5 border border-slate-800">
+      <div class="text-3xl font-bold text-accent">35%</div>
+      <div class="text-sm text-slate-400 mt-1">token-storage optimization — Redis session modeling</div>
+    </div>
+    <div class="bg-panel rounded-lg p-5 border border-slate-800">
+      <div class="text-3xl font-bold text-accent">10×</div>
+      <div class="text-sm text-slate-400 mt-1">concurrent transfers, zero lost updates — proven in tests</div>
+    </div>
+    <div class="bg-panel rounded-lg p-5 border border-slate-800">
+      <div class="text-3xl font-bold text-accent">2</div>
+      <div class="text-sm text-slate-400 mt-1">production microservices owned end-to-end on AWS</div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDIES -->
+<section id="case-studies" class="max-w-5xl mx-auto px-4 pb-14">
+  <h2 class="text-2xl font-bold text-white mb-2">Case studies</h2>
+  <p class="text-slate-400 mb-6 text-sm">Not what I used — <em>why</em> I chose it, and what would change the answer.</p>
+
+  <!-- PayFlow -->
+  <details class="bg-panel border border-slate-800 rounded-lg mb-4" open>
+    <summary class="cursor-pointer p-5 flex items-center gap-3 select-none">
+      <span class="chev text-accent">▶</span>
+      <div>
+        <span class="font-semibold text-white">PayFlow — correctness under concurrency and retries</span>
+        <span class="block text-xs text-slate-500 mt-1 mono">Java 21 · Spring Boot 3 · two microservices · event-driven</span>
+      </div>
+    </summary>
+    <div class="px-5 pb-5 text-sm space-y-4">
+      <p class="text-slate-300">A digital wallet backend built to handle the four failure modes every payments system faces:</p>
+      <div class="space-y-3">
+        <div class="border-l-2 border-accent pl-4">
+          <p class="text-white font-medium">Lost updates from concurrent transfers</p>
+          <p class="text-slate-400">Optimistic locking (<span class="mono">@Version</span>) + bounded retry. Low contention makes optimistic cheaper than row locks — under flash-sale contention I'd flip to <span class="mono">SELECT … FOR UPDATE</span>. The retry loop lives in a separate bean: self-invocation bypasses Spring's transaction proxy.</p>
+        </div>
+        <div class="border-l-2 border-accent pl-4">
+          <p class="text-white font-medium">Double spend from client retries</p>
+          <p class="text-slate-400">Idempotency keys enforced by a DB unique constraint — an in-memory check loses the race between concurrent duplicates; the constraint is the only arbiter that survives it.</p>
+        </div>
+        <div class="border-l-2 border-accent pl-4">
+          <p class="text-white font-medium">Dual-write between DB and event bus</p>
+          <p class="text-slate-400">Transactional outbox committed with the balance change; at-least-once relay + eventId dedupe in the consumer composes into exactly-once processing.</p>
+        </div>
+        <div class="border-l-2 border-accent pl-4">
+          <p class="text-white font-medium">Silent balance corruption</p>
+          <p class="text-slate-400">Append-only double-entry ledger — every transfer nets to zero, asserted in the test suite.</p>
+        </div>
+      </div>
+      <p class="text-slate-300"><span class="text-accent font-medium">Proof:</span> concurrency tests — 10 simultaneous transfers with exact money conservation; duplicate keys produce one debit.</p>
+      <a href="https://github.com/patil2001/payflow" class="inline-block text-accent hover:underline mono text-xs">→ github.com/patil2001/payflow</a>
+    </div>
+  </details>
+
+  <!-- ETL -->
+  <details class="bg-panel border border-slate-800 rounded-lg mb-4">
+    <summary class="cursor-pointer p-5 flex items-center gap-3 select-none">
+      <span class="chev text-accent">▶</span>
+      <div>
+        <span class="font-semibold text-white">Spring Batch ETL — Snowflake → PostgreSQL at scale</span>
+        <span class="block text-xs text-slate-500 mt-1 mono">Amdocs (T-Mobile) · Spring Batch · SQL tuning · partitioning</span>
+      </div>
+    </summary>
+    <div class="px-5 pb-5 text-sm space-y-4">
+      <div class="border-l-2 border-accent pl-4">
+        <p class="text-white font-medium">Peak run times blowing the batch window</p>
+        <p class="text-slate-400">Profiling showed reads dominated. SQL tuning + table partitioning let independent slices run in parallel steps without write contention.</p>
+      </div>
+      <div class="border-l-2 border-accent pl-4">
+        <p class="text-white font-medium">Mid-run failures leaving partial state</p>
+        <p class="text-slate-400">Up-front input validation + retry on transient failures turned whole-job aborts into per-record skips with a report.</p>
+      </div>
+      <p class="text-slate-300"><span class="text-accent font-medium">Outcome:</span> peak runtime cut significantly; per-run metrics tracked to drive iterative reliability work.</p>
+    </div>
+  </details>
+
+  <!-- Auth -->
+  <details class="bg-panel border border-slate-800 rounded-lg">
+    <summary class="cursor-pointer p-5 flex items-center gap-3 select-none">
+      <span class="chev text-accent">▶</span>
+      <div>
+        <span class="font-semibold text-white">Redis-backed auth for client integrations</span>
+        <span class="block text-xs text-slate-500 mt-1 mono">Amdocs · Redis · circuit breaker · token lifecycle</span>
+      </div>
+    </summary>
+    <div class="px-5 pb-5 text-sm space-y-4">
+      <div class="border-l-2 border-accent pl-4">
+        <p class="text-white font-medium">Token generation hammering the identity provider</p>
+        <p class="text-slate-400">Generate once per client, cache in Redis with TTLs mirroring token expiry, inject via <span class="mono">x-authorization</span> headers. Restructuring the token data model yielded a 35% storage optimization.</p>
+      </div>
+      <div class="border-l-2 border-accent pl-4">
+        <p class="text-white font-medium">Cross-tenant access attempts</p>
+        <p class="text-slate-400">Redis session validation + data fencing rejects requests that don't own the resource before business logic runs.</p>
+      </div>
+      <div class="border-l-2 border-accent pl-4">
+        <p class="text-white font-medium">Partial failures in downstream token APIs</p>
+        <p class="text-slate-400">POP token generator with configurable retries + circuit breaker — fail fast when the provider is down; custom exceptions split retryable from terminal.</p>
+      </div>
+    </div>
+  </details>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects" class="max-w-5xl mx-auto px-4 pb-14">
+  <h2 class="text-2xl font-bold text-white mb-6">Projects</h2>
+  <div class="grid md:grid-cols-3 gap-4">
+    <a href="https://github.com/patil2001/payflow" class="bg-panel border border-slate-800 rounded-lg p-5 hover:border-accent transition">
+      <h3 class="font-semibold text-white">PayFlow</h3>
+      <p class="text-sm text-slate-400 mt-2">Wallet & payments backend: optimistic locking, idempotency, transactional outbox, double-entry ledger, concurrency test suite.</p>
+      <p class="mono text-xs text-accent mt-3">Java 21 · Spring Boot 3 · JWT · JPA</p>
+    </a>
+    <a id="swagger-card" href="#" class="bg-panel border border-slate-800 rounded-lg p-5 hover:border-accent transition">
+      <h3 class="font-semibold text-white">This portfolio</h3>
+      <p class="text-sm text-slate-400 mt-2">This site is itself a Spring Boot API + static frontend: OpenAPI-documented, containerized, CI-deployed, health-monitored. View the live Swagger UI.</p>
+      <p class="mono text-xs text-accent mt-3">Spring Boot · Docker · GitHub Actions · Render</p>
+    </a>
+    <a href="https://github.com/patil2001" class="bg-panel border border-slate-800 rounded-lg p-5 hover:border-accent transition">
+      <h3 class="font-semibold text-white">Naukri Job Finder</h3>
+      <p class="text-sm text-slate-400 mt-2">Job-search automation: scraping, relevance filtering and application staging with human-in-the-loop approval.</p>
+      <p class="mono text-xs text-accent mt-3">Automation · Browser orchestration</p>
+    </a>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="max-w-5xl mx-auto px-4 pb-14">
+  <h2 class="text-2xl font-bold text-white mb-6">Skills — by depth, not a tag cloud</h2>
+  <div class="space-y-4 text-sm">
+    <div class="bg-panel border border-slate-800 rounded-lg p-5">
+      <p class="mono text-accent text-xs mb-2">EXPERT — use daily, can teach</p>
+      <p class="text-slate-200">Java · Spring Boot · Spring Batch · REST API design · Microservices · PostgreSQL · Redis</p>
+    </div>
+    <div class="bg-panel border border-slate-800 rounded-lg p-5">
+      <p class="mono text-yellow-400 text-xs mb-2">PROFICIENT — shipped to production</p>
+      <p class="text-slate-200">Kafka · AWS (S3, EC2, SNS, SQS, IAM) · Spring Security · Docker · Hibernate/JPA · JUnit + Mockito · Jenkins & GitHub Actions</p>
+    </div>
+    <div class="bg-panel border border-slate-800 rounded-lg p-5">
+      <p class="mono text-slate-500 text-xs mb-2">FAMILIAR — used, still deepening</p>
+      <p class="text-slate-200">Kubernetes · Snowflake · MongoDB · GraphQL · Angular · Python</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="max-w-5xl mx-auto px-4 pb-20">
+  <h2 class="text-2xl font-bold text-white mb-2">Contact</h2>
+  <p class="text-slate-400 text-sm mb-6">Hiring for backend roles, or want to talk distributed systems? Reach out.</p>
+  <div class="grid md:grid-cols-2 gap-8">
+    <form id="contact-form" class="space-y-3">
+      <input required name="name" maxlength="100" placeholder="Your name" class="w-full bg-panel border border-slate-700 rounded px-3 py-2 focus:border-accent outline-none">
+      <input required name="email" type="email" maxlength="200" placeholder="Your email" class="w-full bg-panel border border-slate-700 rounded px-3 py-2 focus:border-accent outline-none">
+      <textarea required name="message" maxlength="2000" rows="4" placeholder="Message" class="w-full bg-panel border border-slate-700 rounded px-3 py-2 focus:border-accent outline-none"></textarea>
+      <button type="submit" class="px-5 py-2 bg-accent text-ink font-semibold rounded hover:opacity-90">Send</button>
+      <p id="form-status" class="text-xs mono text-slate-500"></p>
+    </form>
+    <div class="text-sm space-y-3">
+      <p><span class="text-slate-500 mono">email →</span> <a href="mailto:patilbuddhaprakash@gmail.com" class="text-accent hover:underline">patilbuddhaprakash@gmail.com</a></p>
+      <p><span class="text-slate-500 mono">linkedin →</span> <a href="https://www.linkedin.com/in/buddhapp" class="text-accent hover:underline">in/buddhapp</a></p>
+      <p><span class="text-slate-500 mono">github →</span> <a href="https://github.com/patil2001" class="text-accent hover:underline">patil2001</a></p>
+      <p class="text-slate-500 pt-4" id="visitor-count"></p>
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-600 mono">
+  built with Spring Boot + a single index.html — <a href="#" id="footer-swagger" class="text-slate-500 hover:text-accent">see the API docs</a>
+</footer>
+
+<script>
+// The site is fully static-first: everything above renders with no backend.
+// If the API is awake (Render free tier cold-starts), live features attach.
+const API = 'https://portfolio-api-buddhaprakash.onrender.com'; // update after Render deploy
+
+document.getElementById('swagger-card').href = API + '/swagger-ui';
+document.getElementById('footer-swagger').href = API + '/swagger-ui';
+
+const statusEl = document.getElementById('api-status');
+fetch(API + '/actuator/health', {signal: AbortSignal.timeout(8000)})
+  .then(r => r.json())
+  .then(h => { statusEl.textContent = 'api: ' + (h.status === 'UP' ? 'live ● (Spring Boot on Render)' : h.status); statusEl.classList.add('text-accent'); })
+  .catch(() => { statusEl.textContent = 'api: cold-starting (free tier) — static content unaffected'; });
+
+fetch(API + '/api/visitors', {method: 'POST', signal: AbortSignal.timeout(8000)})
+  .then(r => r.json())
+  .then(d => document.getElementById('visitor-count').textContent = `visitor #${d.visits} since last deploy`)
+  .catch(() => {});
+
+document.getElementById('contact-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = e.target, s = document.getElementById('form-status');
+  s.textContent = 'sending…';
+  try {
+    const r = await fetch(API + '/api/contact', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({name: f.name.value, email: f.email.value, message: f.message.value})
+    });
+    if (r.ok) { s.textContent = 'received — I\'ll reply soon.'; f.reset(); }
+    else if (r.status === 429) { s.textContent = 'rate limit hit — try later or email me directly.'; }
+    else { s.textContent = 'something failed — email me directly instead.'; }
+  } catch {
+    s.textContent = 'API asleep — email me directly: patilbuddhaprakash@gmail.com';
+  }
+});
+</script>
+</body>
+</html>

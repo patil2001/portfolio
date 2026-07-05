@@ -22,9 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Messages are emailed via Gmail SMTP when MAIL_USERNAME/MAIL_PASSWORD env vars
- * are set; otherwise they fall back to the application log (visible in Render's
- * log stream), so the endpoint keeps working with no credentials configured.
+ * Messages are emailed via Resend's HTTPS API when RESEND_API_KEY is set —
+ * Render's free tier blocks outbound SMTP (ports 25/465/587), so SMTP relays
+ * like Gmail are unreachable from this host; HTTPS on 443 always works.
+ * Without the key, messages fall back to the application log (visible in
+ * Render's log stream), so the endpoint keeps working unconfigured.
  * A simple fixed-window rate limit per IP guards against form spam;
  * ConcurrentHashMap suffices at portfolio traffic levels.
  */
@@ -38,15 +40,14 @@ public class ContactController {
 
     private final ConcurrentHashMap<String, ConcurrentLinkedDeque<Instant>> hits = new ConcurrentHashMap<>();
 
-    private final org.springframework.mail.javamail.JavaMailSender mailSender;
-    private final String mailUsername;
+    private final java.net.http.HttpClient httpClient = java.net.http.HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10)).build();
+    private final String resendApiKey;
     private final String mailTo;
 
-    public ContactController(org.springframework.mail.javamail.JavaMailSender mailSender,
-                             @org.springframework.beans.factory.annotation.Value("${spring.mail.username}") String mailUsername,
+    public ContactController(@org.springframework.beans.factory.annotation.Value("${portfolio-mail.resend-api-key}") String resendApiKey,
                              @org.springframework.beans.factory.annotation.Value("${portfolio-mail.to}") String mailTo) {
-        this.mailSender = mailSender;
-        this.mailUsername = mailUsername;
+        this.resendApiKey = resendApiKey;
         this.mailTo = mailTo;
     }
 
@@ -72,21 +73,38 @@ public class ContactController {
 
         log.info("CONTACT message from {} <{}>: {}", req.name(), req.email(), req.message());
 
-        if (!mailUsername.isBlank()) {
+        if (!resendApiKey.isBlank()) {
             try {
-                var mail = new org.springframework.mail.SimpleMailMessage();
-                mail.setFrom(mailUsername);
-                mail.setTo(mailTo);
-                mail.setReplyTo(req.email());
-                mail.setSubject("Portfolio contact: " + req.name());
-                mail.setText("From: " + req.name() + " <" + req.email() + ">\n\n" + req.message());
-                mailSender.send(mail);
+                String body = """
+                        {"from":"Portfolio Contact <onboarding@resend.dev>",
+                         "to":["%s"],
+                         "reply_to":"%s",
+                         "subject":"Portfolio contact: %s",
+                         "text":"From: %s <%s>\\n\\n%s"}"""
+                        .formatted(mailTo, jsonEscape(req.email()), jsonEscape(req.name()),
+                                jsonEscape(req.name()), jsonEscape(req.email()), jsonEscape(req.message()));
+                var request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("https://api.resend.com/emails"))
+                        .timeout(Duration.ofSeconds(15))
+                        .header("Authorization", "Bearer " + resendApiKey)
+                        .header("Content-Type", "application/json")
+                        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
+                        .build();
+                var response = httpClient.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+                if (response.statusCode() >= 300) {
+                    log.error("Resend API returned {}: {}", response.statusCode(), response.body());
+                }
             } catch (Exception e) {
                 // The message is already in the log above — never fail the visitor's
-                // request because SMTP hiccuped.
+                // request because email delivery hiccuped.
                 log.error("Failed to send contact email: {}", e.getMessage());
             }
         }
         return ResponseEntity.ok(Map.of("status", "received"));
+    }
+
+    private static String jsonEscape(String s) {
+        return s.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "").replace("\t", "\\t");
     }
 }

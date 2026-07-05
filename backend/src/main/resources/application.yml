@@ -4,6 +4,21 @@ server:
 spring:
   application:
     name: portfolio-api
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+portfolio-mail:
+  # where contact-form messages are delivered; sending is skipped if MAIL_USERNAME is unset
+  to: ${MAIL_TO:patilbuddhaprakash@gmail.com}
 
 portfolio:
   # comma-separated; override in Render env for the real GitHub Pages origin

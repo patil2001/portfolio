@@ -22,10 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
- * Messages are logged (visible in Render's log stream) rather than emailed —
- * sending mail needs SMTP credentials in env config, which can be added later
- * without an API change. A simple fixed-window rate limit per IP guards against
- * form spam; ConcurrentHashMap suffices at portfolio traffic levels.
+ * Messages are emailed via Gmail SMTP when MAIL_USERNAME/MAIL_PASSWORD env vars
+ * are set; otherwise they fall back to the application log (visible in Render's
+ * log stream), so the endpoint keeps working with no credentials configured.
+ * A simple fixed-window rate limit per IP guards against form spam;
+ * ConcurrentHashMap suffices at portfolio traffic levels.
  */
 @RestController
 @RequestMapping("/api/contact")
@@ -36,6 +37,18 @@ public class ContactController {
     private static final int MAX_PER_HOUR = 5;
 
     private final ConcurrentHashMap<String, ConcurrentLinkedDeque<Instant>> hits = new ConcurrentHashMap<>();
+
+    private final org.springframework.mail.javamail.JavaMailSender mailSender;
+    private final String mailUsername;
+    private final String mailTo;
+
+    public ContactController(org.springframework.mail.javamail.JavaMailSender mailSender,
+                             @org.springframework.beans.factory.annotation.Value("${spring.mail.username}") String mailUsername,
+                             @org.springframework.beans.factory.annotation.Value("${portfolio-mail.to}") String mailTo) {
+        this.mailSender = mailSender;
+        this.mailUsername = mailUsername;
+        this.mailTo = mailTo;
+    }
 
     public record ContactRequest(
             @NotBlank @Size(max = 100) String name,
@@ -58,6 +71,22 @@ public class ContactController {
         window.add(Instant.now());
 
         log.info("CONTACT message from {} <{}>: {}", req.name(), req.email(), req.message());
+
+        if (!mailUsername.isBlank()) {
+            try {
+                var mail = new org.springframework.mail.SimpleMailMessage();
+                mail.setFrom(mailUsername);
+                mail.setTo(mailTo);
+                mail.setReplyTo(req.email());
+                mail.setSubject("Portfolio contact: " + req.name());
+                mail.setText("From: " + req.name() + " <" + req.email() + ">\n\n" + req.message());
+                mailSender.send(mail);
+            } catch (Exception e) {
+                // The message is already in the log above — never fail the visitor's
+                // request because SMTP hiccuped.
+                log.error("Failed to send contact email: {}", e.getMessage());
+            }
+        }
         return ResponseEntity.ok(Map.of("status", "received"));
     }
 }
